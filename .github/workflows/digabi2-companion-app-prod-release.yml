@@ -1,0 +1,44 @@
+name: Companion app production release
+
+on:
+  workflow_call:
+    inputs:
+      app-name:
+        required: true
+        type: string
+      aws-access-role:
+        required: true
+        type: string
+      tag:
+        required: true
+        type: string
+    secrets:
+      UTILITY_ACCOUNT_ID:
+        required: true
+
+jobs:
+  release:
+    name: Release private image to public ECR
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.UTILITY_ACCOUNT_ID }}:role/${{ inputs.aws-access-role }}
+          aws-region: eu-north-1
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Pull private image
+        run: docker pull --platform linux/amd64,linux/arm64 ${{ steps.login-ecr.outputs.registry }}/${{ inputs.app-name }}:${{ inputs.tag }}
+      - name: Tag image
+        run: docker tag ${{ steps.login-ecr.outputs.registry }}/${{ inputs.app-name }}:${{ inputs.tag }} ${{ steps.login-ecr.outputs.registry }}/${{ inputs.app-name }}-prod:${{ inputs.tag }}
+      - name: Push image
+        run: docker push --platform linux/amd64,linux/arm64 ${{ steps.login-ecr.outputs.registry }}/${{ inputs.app-name }}-prod:${{ inputs.tag }}
+      - name: Create Github Release
+        uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # Pin to commit hash to prevent compromise of third party action
+        with:
+          tag_name: ${{ inputs.tag }}
