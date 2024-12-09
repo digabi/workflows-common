@@ -35,18 +35,13 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Build and push
-        uses: docker/build-push-action@v5
+      - name: Install regctl
+        uses: regclient/actions/regctl-installer@ce5fd131e371ffcdd7508b478cb223b3511a9183
         with:
-          push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.app-name }}-prod:${{ inputs.tag }}
-          provenance: false
-          platforms: linux/amd64,linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          release: 'v0.7.2'
+      - name: Publish prod image
+        run: regctl image copy ${{ steps.login-ecr.outputs.registry }}/${{ inputs.app-name }}:${{ inputs.tag }} ${{ steps.login-ecr.outputs.registry }}/${{ inputs.app-name }}-prod:${{ inputs.tag }}
       - name: Create Github Release
-        uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # Pin to commit hash to prevent compromise of third party action
+        uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564
         with:
           tag_name: ${{ inputs.tag }}
