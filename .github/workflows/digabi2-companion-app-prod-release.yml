@@ -1,4 +1,4 @@
-name: Companion app production release to public ECR
+name: Companion app production release
 
 on:
   workflow_call:
