@@ -1,6 +1,6 @@
 name: 'Assume Digabi AWS Role'
 
-secrets:
+inputs:
   aws-account-id:
         description: 'AWS Account ID to access'
         required: true
