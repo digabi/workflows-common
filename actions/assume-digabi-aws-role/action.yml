@@ -13,10 +13,10 @@ runs:
           REPO_OWNER="${{ github.repository_owner }}"
           REPO_NAME=${REPO_FULL#$REPO_OWNER/}
           echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
+      shell: bash
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
           role-to-assume: arn:aws:iam::${{ inputs.aws-account-id }}:role/${{ env.REPO_NAME }}-github-access
           aws-region: eu-north-1
-        
-    
+      
