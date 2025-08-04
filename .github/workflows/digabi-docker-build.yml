@@ -11,6 +11,11 @@ on:
         description: 'Target stage for the Docker build (e.g., production, staging) need '
         required: false
         type: string
+      no-npm:
+        description: 'set to true to skip node setup if unecessary'
+        required: false
+        type: boolean
+        default: false
     secrets:
       NPM_TOKEN:
         description: 'NPM authentication token for private packages'
@@ -29,6 +34,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
+        if: ${{ !inputs.no-npm }}
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
