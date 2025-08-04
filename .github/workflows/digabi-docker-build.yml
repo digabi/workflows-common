@@ -16,6 +16,11 @@ on:
         required: false
         type: boolean
         default: false
+      dockerfile:
+        description: 'Path to the Dockerfile'
+        required: false
+        type: string
+        default: '.'
     secrets:
       NPM_TOKEN:
         description: 'NPM authentication token for private packages'
@@ -58,6 +63,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
+          context: ${{ inputs.dockerfile }}
           push: true
           tags: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image-name }}:${{env.BRANCH_NAME}}_build-${{ github.run_number }}.${{github.run_attempt}}_${{ env.COMMIT_SHORT_SHA }}
           provenance: false
