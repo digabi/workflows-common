@@ -19,4 +19,4 @@ runs:
       with:
           role-to-assume: arn:aws:iam::${{ inputs.aws-account-id }}:role/${{ env.REPO_NAME }}-github-access
           aws-region: eu-north-1
-      
+          mask-aws-account-id: true
