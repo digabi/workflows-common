@@ -1,0 +1,13 @@
+name: Setup Node
+description: Setup Node.js that is authenticated to pull private NPM packages
+
+runs:
+  using: composite
+  steps:
+    - name: Authenticate with private NPM package
+      run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > $PWD/.npmrc
+      shell: bash
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: .nvmrc
+        cache: npm
