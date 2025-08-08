@@ -26,6 +26,11 @@ on:
         required: false
         type: string
         default: '.'
+      tag-latest:
+        description: 'Set to true to tag the image with latest'
+        required: false
+        type: boolean
+        default: false
     secrets:
       NPM_TOKEN:
         description: 'NPM authentication token for private packages'
@@ -38,6 +43,8 @@ jobs:
   docker-build:
     name: Docker build
     runs-on: ubuntu-latest
+    outputs:
+      image_tag_latest: ${{ steps.docker-tags.outputs.image_tag_latest }}
     permissions:
       id-token: write
       contents: read
@@ -57,21 +64,39 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Set custom git info in env variables
-        id: vars
+      - name: Create docker tags
+        id: docker-tags
         # github.sha is not the latest commit sha in pull_request event so we need to get it from the event payload
         run: |
           calculatedSha=$(git rev-parse --short  ${{ github.event_name == 'pull_request' && format('{0}',github.event.pull_request.head.sha) || format('{0}',github.sha)  }})
           echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
           branchName="${{ github.head_ref || github.ref_name }}"
-          echo "BRANCH_NAME=${branchName//\//-}" >> $GITHUB_ENV
+          branchNoForwardSlash="${branchName//\//-}" 
+          latestTag="${branchNoForwardSlash}_latest"
+          echo "image_tag_latest=${latestTag}" >> $GITHUB_OUTPUT
+          echo "image_tag=${branchNoForwardSlash}_build-${{ github.run_number }}.${{github.run_attempt}}_${calculatedSha}" >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           push: true
           file: ${{ inputs.file }}
           context: ${{ inputs.context }}
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image-name }}:${{env.BRANCH_NAME}}_build-${{ github.run_number }}.${{github.run_attempt}}_${{ env.COMMIT_SHORT_SHA }}
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image-name }}:${{steps.docker-tags.outputs.image_tag}}
+          provenance: false
+          target: ${{ inputs.docker-target }}
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          secrets: |
+            npmrc=//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+      - name: Push latest tag
+        if: ${{ inputs.tag-latest }}
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          file: ${{ inputs.file }}
+          context: ${{ inputs.context }}
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image-name }}:${{steps.docker-tags.outputs.image_tag_latest}}
           provenance: false
           target: ${{ inputs.docker-target }}
           platforms: linux/amd64
