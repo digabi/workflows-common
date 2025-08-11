@@ -38,6 +38,13 @@ on:
       AWS_ACCOUNT_ID:
         description: 'AWS Account ID for ECR access'
         required: true
+    outputs:
+      image_tag_latest:
+        description: 'Latest tag for the Docker image'
+        value: ${{ jobs.docker-build.outputs.image_tag_latest }}
+      image_tag:
+        description: 'Build tag for the Docker image'  
+        value: ${{ jobs.docker-build.outputs.image_tag }}
 
 jobs:
   docker-build:
