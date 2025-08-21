@@ -1,0 +1,53 @@
+name: 'Queue Integration Tests'
+
+on:
+  workflow_call:
+    inputs:
+      image_tag_latest:
+        description: 'Docker image tag (branch_latest) that was build in previous step'
+        required: true
+        type: string
+      test_yo:
+        description: 'True if yo tests should be run'
+        required: false
+        type: boolean
+      test_abitti:
+        description: 'True if Abitti tests should be run'
+        required: false
+        type: boolean
+    secrets:
+      ORG_REPO_TOKEN:
+        description: 'Token for cross-repo access'
+        required: true
+jobs:
+  queue-abitti-tests:
+    name: Queue Abitti tests
+    if: ${{ inputs.test_abitti }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      statuses: write
+    steps:
+      - name: Queue abitti tests
+        uses: digabi/workflows-common/actions/queue-test-run@docker-integration-tests
+        with:
+          image_tag_latest: ${{ inputs.image_tag_latest }}
+          test_workflow_file: abitti-playwright-tests.yml
+          test_status_name: integration-tests/abitti
+          cross_repo_access_token: ${{ secrets.ORG_REPO_TOKEN }}
+
+  queue-yo-tests:
+    name: Queue Yo tests
+    if: ${{ inputs.test_yo }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      statuses: write
+    steps:
+      - name: Queue yo tests
+        uses: digabi/workflows-common/actions/queue-test-run@docker-integration-tests
+        with:
+          image_tag_latest: ${{ inputs.image_tag_latest }}
+          test_workflow_file: yo-playwright-tests.yml
+          test_status_name: integration-tests/yo
+          cross_repo_access_token: ${{ secrets.ORG_REPO_TOKEN }}
