@@ -36,6 +36,18 @@ jobs:
           private-key: ${{ secrets.CROSS_REPO_ACCESS_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
 
+  debug:
+    name: Debug
+    needs: create-app-token
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print debug information
+        run: |
+          echo "App Token: ${{ needs.create-app-token.outputs.app-token }}"
+          echo "Image Tag Latest: ${{ inputs.image_tag_latest }}"
+          echo "Test Yo: ${{ inputs.test_yo }}"
+          echo "Test Abitti: ${{ inputs.test_abitti }}"
+
   queue-abitti-tests:
     name: Queue Abitti tests
     needs: create-app-token
