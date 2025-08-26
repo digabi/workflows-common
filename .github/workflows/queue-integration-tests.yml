@@ -15,6 +15,10 @@ on:
         description: 'True if Abitti tests should be run'
         required: false
         type: boolean
+      test_koe_kptjs:
+        description: 'True if Koe Kptjs tests should be run'
+        required: false
+        type: boolean
       cross_repo_access_app_id:
         description: 'GitHub App ID for integration tests'
         required: true
@@ -81,3 +85,21 @@ jobs:
           test_workflow_file: yo-playwright-tests.yml
           test_status_name: integration-tests/yo
           cross_repo_access_token: ${{ needs.create-app-token.outputs.app-token }}
+
+  queue-koe-kptjs-tests:
+    name: Queue Koe Ktpjs tests
+    needs: create-app-token
+    if: ${{ inputs.test_yo }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      statuses: write
+    steps:
+      - name: Queue yo tests
+        uses: digabi/workflows-common/actions/queue-test-run@docker-integration-tests
+        with:
+          image_tag_latest: ${{ inputs.image_tag_latest }}
+          test_workflow_file: koe-kptjs-playwright-tests.yml
+          test_status_name: integration-tests/koe-kptjs
+          cross_repo_access_token: ${{ needs.create-app-token.outputs.app-token }}
+
