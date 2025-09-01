@@ -1,0 +1,25 @@
+name: "Create ECR image tag names"
+
+outputs:
+  image_tag_latest:
+    description: "Image tag latest"
+    value: ${{ steps.tags.outputs.image_tag_latest }}
+  image_tag:
+    description: "Image tag"
+    value: ${{ steps.tags.outputs.image_tag }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create ECR image tag name
+      id: tags
+      # github.sha is not the latest commit sha in pull_request event so we need to get it from the event payload
+      run: |
+        calculatedSha=$(git rev-parse --short  ${{ github.event_name == 'pull_request' && format('{0}',github.event.pull_request.head.sha) || format('{0}',github.sha)  }})
+        echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
+        branchName="${{ github.head_ref || github.ref_name }}"
+        branchNoForwardSlash="${branchName//\//-}" 
+        latestTag="${branchNoForwardSlash}_latest"
+        echo "image_tag_latest=${latestTag}" >> $GITHUB_OUTPUT
+        echo "image_tag=${branchNoForwardSlash}_build-${{ github.run_number }}.${{github.run_attempt}}_${calculatedSha}" >> $GITHUB_OUTPUT
+      shell: bash
