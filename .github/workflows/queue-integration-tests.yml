@@ -1,31 +1,31 @@
-name: 'Queue Integration Tests'
+name: "Queue Integration Tests"
 
 on:
   workflow_call:
     inputs:
       image_tag_latest:
-        description: 'Docker image tag (branch_latest) that was build in previous step'
+        description: "Docker image tag (branch_latest) that was build in previous step"
         required: true
         type: string
       test_yo:
-        description: 'True if yo tests should be run'
+        description: "True if yo tests should be run"
         required: false
         type: boolean
       test_abitti:
-        description: 'True if Abitti tests should be run'
+        description: "True if Abitti tests should be run"
         required: false
         type: boolean
       test_koe_kptjs:
-        description: 'True if Koe Kptjs tests should be run'
+        description: "True if Koe Kptjs tests should be run"
         required: false
         type: boolean
       cross_repo_access_app_id:
-        description: 'GitHub App ID for integration tests'
+        description: "GitHub App ID for integration tests"
         required: true
         type: string
     secrets:
       CROSS_REPO_ACCESS_APP_PRIVATE_KEY:
-        description: 'private key for cross-repo access app' 
+        description: "private key for cross-repo access app"
         required: true
 jobs:
   trigger-tests:
@@ -61,7 +61,6 @@ jobs:
         uses: digabi/workflows-common/actions/queue-test-run@docker-integration-tests
         with:
           image_tag_latest: ${{ inputs.image_tag_latest }}
-          test_workflow_file: koe-kptjs-playwright-tests.yml
+          test_workflow_file: koe-ktpjs-playwright-tests.yml
           test_status_name: integration-tests/koe-kptjs
           cross_repo_access_token: ${{ steps.app-token.outputs.token }}
-    
