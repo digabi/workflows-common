@@ -20,4 +20,3 @@ runs:
         else
           echo "LAST_COMMIT_SHA=${GITHUB_SHA}" >> "$GITHUB_ENV"
         fi
-      shell: bash
