@@ -1,0 +1,23 @@
+## If github.sha value is used in pull requests the value will be pointing to the merge commit, not the latest actual commit.
+## This results in our statuses showing incorrectly
+
+name: "Get latest commit sha"
+
+outputs:
+  last_commit_sha:
+    description: "Last commit SHA"
+    value: ${{ steps.last_commit_sha.outputs.last_commit_sha }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Last commit SHA
+      id: last_commit_sha
+      shell: bash
+      run: |
+        if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+          echo "LAST_COMMIT_SHA=${GITHUB_HEAD_SHA}" >> "$GITHUB_ENV"
+        else
+          echo "LAST_COMMIT_SHA=${GITHUB_SHA}" >> "$GITHUB_ENV"
+        fi
+      shell: bash
