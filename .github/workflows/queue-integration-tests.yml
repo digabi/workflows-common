@@ -62,5 +62,5 @@ jobs:
         with:
           image_tag_latest: ${{ inputs.image_tag_latest }}
           test_workflow_file: koe-ktpjs-playwright-tests.yml
-          test_status_name: integration-tests/koe-kptjs
+          test_status_name: integration-tests/koe-ktpjs
           cross_repo_access_token: ${{ steps.app-token.outputs.token }}
