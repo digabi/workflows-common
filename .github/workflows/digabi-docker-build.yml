@@ -72,7 +72,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - id: docker-tags
-        uses: digabi/workflows-common/actions/ecr-image-tags@docker-integration-tests
+        uses: digabi/workflows-common/actions/ecr-image-tags@main
       - name: Build and push
         uses: docker/build-push-action@v5
         with:

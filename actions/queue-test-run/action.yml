@@ -21,7 +21,7 @@ runs:
   using: "composite"
   steps:
     - id: last-sha
-      uses: digabi/workflows-common/actions/last-commit-sha@docker-integration-tests
+      uses: digabi/workflows-common/actions/last-commit-sha@main
     - name: Mark tests pending
       env:
         GH_TOKEN: ${{ github.token }}
