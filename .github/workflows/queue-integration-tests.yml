@@ -15,8 +15,8 @@ on:
         description: "True if Abitti tests should be run"
         required: false
         type: boolean
-      test_koe_kptjs:
-        description: "True if Koe Kptjs tests should be run"
+      test_koe_ktpjs:
+        description: "True if Koe ktpjs tests should be run"
         required: false
         type: boolean
       cross_repo_access_app_id:
@@ -57,7 +57,7 @@ jobs:
           test_status_name: integration-tests/yo
           cross_repo_access_token: ${{ steps.app-token.outputs.token }}
       - name: Queue koe ktpjs tests
-        if: ${{ inputs.test_koe_kptjs }}
+        if: ${{ inputs.test_koe_ktpjs }}
         uses: digabi/workflows-common/actions/queue-test-run@main
         with:
           image_tag_latest: ${{ inputs.image_tag_latest }}
