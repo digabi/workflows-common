@@ -1,43 +1,57 @@
-name: 'Docker Build&Push'
+name: "Docker Build&Push"
 
 on:
   workflow_call:
     inputs:
       image-name:
-        description: 'Name of the Docker image'
+        description: "Name of the Docker image"
         required: true
         type: string
       docker-target:
-        description: 'Target stage for the Docker build (e.g., production, staging) need '
+        description: "Target stage for the Docker build (e.g., production, staging) need "
         required: false
         type: string
       no-npm:
-        description: 'set to true to skip node setup if unecessary'
+        description: "set to true to skip node setup if unecessary"
         required: false
         type: boolean
         default: false
       file:
-        description: 'Path to the Dockerfile'
+        description: "Path to the Dockerfile"
         required: false
         type: string
-        default: 'Dockerfile'
+        default: "Dockerfile"
       context:
-        description: 'Context for the Docker build'
+        description: "Context for the Docker build"
         required: false
         type: string
-        default: '.'
+        default: "."
+      tag-latest:
+        description: "Set to true to tag the image with latest"
+        required: false
+        type: boolean
+        default: false
     secrets:
       NPM_TOKEN:
-        description: 'NPM authentication token for private packages'
+        description: "NPM authentication token for private packages"
         required: true
       AWS_ACCOUNT_ID:
-        description: 'AWS Account ID for ECR access'
+        description: "AWS Account ID for ECR access"
         required: true
+    outputs:
+      image_tag_latest:
+        description: "Latest tag for the Docker image"
+        value: ${{ jobs.docker-build.outputs.image_tag_latest }}
+      image_tag:
+        description: "Build tag for the Docker image"
+        value: ${{ jobs.docker-build.outputs.image_tag }}
 
 jobs:
   docker-build:
     name: Docker build
     runs-on: ubuntu-latest
+    outputs:
+      image_tag_latest: ${{ steps.docker-tags.outputs.image_tag_latest }}
     permissions:
       id-token: write
       contents: read
@@ -46,8 +60,8 @@ jobs:
       - uses: actions/setup-node@v4
         if: ${{ !inputs.no-npm }}
         with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
+          node-version-file: ".nvmrc"
+          cache: "npm"
       - name: Assume AWS role
         uses: digabi/workflows-common/actions/assume-digabi-aws-role@main
         with:
@@ -57,21 +71,30 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Set custom git info in env variables
-        id: vars
-        # github.sha is not the latest commit sha in pull_request event so we need to get it from the event payload
-        run: |
-          calculatedSha=$(git rev-parse --short  ${{ github.event_name == 'pull_request' && format('{0}',github.event.pull_request.head.sha) || format('{0}',github.sha)  }})
-          echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
-          branchName="${{ github.head_ref || github.ref_name }}"
-          echo "BRANCH_NAME=${branchName//\//-}" >> $GITHUB_ENV
+      - id: docker-tags
+        uses: digabi/workflows-common/actions/ecr-image-tags@docker-integration-tests
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           push: true
           file: ${{ inputs.file }}
           context: ${{ inputs.context }}
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image-name }}:${{env.BRANCH_NAME}}_build-${{ github.run_number }}.${{github.run_attempt}}_${{ env.COMMIT_SHORT_SHA }}
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image-name }}:${{steps.docker-tags.outputs.image_tag}}
+          provenance: false
+          target: ${{ inputs.docker-target }}
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          secrets: |
+            npmrc=//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+      - name: Push latest tag
+        if: ${{ inputs.tag-latest }}
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          file: ${{ inputs.file }}
+          context: ${{ inputs.context }}
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image-name }}:${{steps.docker-tags.outputs.image_tag_latest}}
           provenance: false
           target: ${{ inputs.docker-target }}
           platforms: linux/amd64

@@ -1,0 +1,66 @@
+name: "Queue Integration Tests"
+
+on:
+  workflow_call:
+    inputs:
+      image_tag_latest:
+        description: "Docker image tag (branch_latest) that was build in previous step"
+        required: true
+        type: string
+      test_yo:
+        description: "True if yo tests should be run"
+        required: false
+        type: boolean
+      test_abitti:
+        description: "True if Abitti tests should be run"
+        required: false
+        type: boolean
+      test_koe_kptjs:
+        description: "True if Koe Kptjs tests should be run"
+        required: false
+        type: boolean
+      cross_repo_access_app_id:
+        description: "GitHub App ID for integration tests"
+        required: true
+        type: string
+    secrets:
+      CROSS_REPO_ACCESS_APP_PRIVATE_KEY:
+        description: "private key for cross-repo access app"
+        required: true
+jobs:
+  trigger-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      statuses: write
+    steps:
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ inputs.cross_repo_access_app_id }}
+          private-key: ${{ secrets.CROSS_REPO_ACCESS_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+      - name: Queue abitti tests
+        if: ${{ inputs.test_abitti }}
+        uses: digabi/workflows-common/actions/queue-test-run@docker-integration-tests
+        with:
+          image_tag_latest: ${{ inputs.image_tag_latest }}
+          test_workflow_file: abitti-playwright-tests.yml
+          test_status_name: integration-tests/abitti
+          cross_repo_access_token: ${{ steps.app-token.outputs.token }}
+      - name: Queue yo tests
+        if: ${{ inputs.test_yo }}
+        uses: digabi/workflows-common/actions/queue-test-run@docker-integration-tests
+        with:
+          image_tag_latest: ${{ inputs.image_tag_latest }}
+          test_workflow_file: yo-playwright-tests.yml
+          test_status_name: integration-tests/yo
+          cross_repo_access_token: ${{ steps.app-token.outputs.token }}
+      - name: Queue koe ktpjs tests
+        if: ${{ inputs.test_koe_kptjs }}
+        uses: digabi/workflows-common/actions/queue-test-run@docker-integration-tests
+        with:
+          image_tag_latest: ${{ inputs.image_tag_latest }}
+          test_workflow_file: koe-ktpjs-playwright-tests.yml
+          test_status_name: integration-tests/koe-ktpjs
+          cross_repo_access_token: ${{ steps.app-token.outputs.token }}

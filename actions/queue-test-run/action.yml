@@ -1,0 +1,45 @@
+name: "Queue integration test run"
+
+inputs:
+  image_tag_latest:
+    description: "Docker image tag (branch_latest) that was build in previous step"
+    type: string
+    required: true
+  test_workflow_file:
+    description: "Test workflow file name"
+    type: string
+    required: true
+  test_status_name:
+    description: "Test status name"
+    type: string
+    required: true
+  cross_repo_access_token:
+    description: "Token for cross-repo access"
+    type: string
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - id: last-sha
+      uses: digabi/workflows-common/actions/last-commit-sha@docker-integration-tests
+    - name: Mark tests pending
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh api repos/${{ github.repository }}/statuses/${{ steps.last-sha.outputs.last_commit_sha }} \
+          -F state=pending \
+          -F context=${{ inputs.test_status_name }} \
+          -F description='Waiting for integration-tests'
+      shell: bash
+    - name: Dispatch test workflow to same branch
+      env:
+        GH_TOKEN: ${{ inputs.cross_repo_access_token }}
+        TARGET_BRANCH: ${{ github.head_ref || github.ref_name }}
+      run: |
+        gh workflow run ${{ inputs.test_workflow_file }} \
+          -R digabi/integration-tests \
+          -r "$TARGET_BRANCH" \
+          -F image_tag_latest="${{ inputs.image_tag_latest }}" \
+          -F sha="${{ steps.last-sha.outputs.last_commit_sha }}" \
+          -F repository="${{ github.repository }}"
+      shell: bash
