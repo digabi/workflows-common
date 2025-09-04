@@ -17,6 +17,10 @@ inputs:
     description: "Token for cross-repo access"
     type: string
     required: false
+  integration_test_access_token:
+    description: "Token for access to test repo"
+    type: string
+    required: false
 
 runs:
   using: "composite"
@@ -55,7 +59,7 @@ runs:
     - name: Create branch from master if it doesnt exist
       if: steps.check.outputs.exists == 'false'
       env:
-        GH_TOKEN: ${{ inputs.cross_repo_access_token }}
+        GH_TOKEN: ${{ inputs.integration_test_access_token }}
       run: |
         master_sha=$(gh api repos/$INTEGRATION_TESTS_REPO/branches/master --jq .commit.sha)
         echo "Got sha for master: $master_sha"
