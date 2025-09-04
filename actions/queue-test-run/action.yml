@@ -57,10 +57,7 @@ runs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        echo "gh api repos/$INTEGRATION_TESTS_REPO/git/ref/heads/master --jq .object.sha"
-
-        master_sha=$(gh api repos/$INTEGRATION_TESTS_REPO/git/ref/heads/master --jq .object.sha)
-
+        master_sha=$(gh api repos/$INTEGRATION_TESTS_REPO/branches/master --jq .commit.sha)
         echo "Got sha for master: $master_sha"
 
         gh api \
