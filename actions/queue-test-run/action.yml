@@ -17,14 +17,18 @@ inputs:
     description: "Token for cross-repo access"
     type: string
     required: false
+
 runs:
   using: "composite"
-  env:
-    - TARGET_BRANCH: ${{ github.head_ref || github.ref_name }}
-    - INTEGRATION_TESTS_REPO: integration-tests
   steps:
     - id: last-sha
       uses: digabi/workflows-common/actions/last-commit-sha@main
+
+    - name: Set environment variables
+      shell: bash
+      run: |
+        echo "TARGET_BRANCH=${{ github.head_ref || github.ref_name }}" >> $GITHUB_ENV
+        echo "INTEGRATION_TESTS_REPO=integration-tests" >> $GITHUB_ENV
 
     - name: Mark tests pending
       env:
