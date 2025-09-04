@@ -19,9 +19,13 @@ inputs:
     required: false
 runs:
   using: "composite"
+  env:
+    - TARGET_BRANCH: ${{ github.head_ref || github.ref_name }}
+    - INTEGRATION_TESTS_REPO: integration-tests
   steps:
     - id: last-sha
       uses: digabi/workflows-common/actions/last-commit-sha@main
+
     - name: Mark tests pending
       env:
         GH_TOKEN: ${{ github.token }}
@@ -31,10 +35,34 @@ runs:
           -F context=${{ inputs.test_status_name }} \
           -F description='Waiting for integration-tests'
       shell: bash
+
+    - name: Check if branch exists in integration-tests repository
+      id: check
+      run: |
+        if gh api repos/${{ env.INTEGRATION_TESTS_REPO }}/branches/${{ env.TARGET_BRANCH }} &>/dev/null; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+      shell: bash
+
+    - name: Create branch from master if it doesnt exist
+      if: steps.check.outputs.exists == 'false'
+      run: |
+        master_sha=$(gh api repos/${{ env.INTEGRATION_TESTS_REPO }}/git/ref/heads/master --jq .object.sha)
+
+        gh api \
+          -X POST \
+          repos/${{ env.INTEGRATION_TESTS_REPO }}/git/refs \
+          -f ref="refs/heads/${{ env.TARGET_BRANCH }}" \
+          -f sha="$master_sha"
+
+        echo "✅ Branch '${{ env.TARGET_BRANCH }}' created from master"
+      shell: bash
+
     - name: Dispatch test workflow to same branch
       env:
         GH_TOKEN: ${{ inputs.cross_repo_access_token }}
-        TARGET_BRANCH: ${{ github.head_ref || github.ref_name }}
       run: |
         gh workflow run ${{ inputs.test_workflow_file }} \
           -R digabi/integration-tests \
