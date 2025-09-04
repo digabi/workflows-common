@@ -57,15 +57,15 @@ runs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        master_sha=$(gh api repos/${{ env.INTEGRATION_TESTS_REPO }}/git/ref/heads/master --jq .object.sha)
+        master_sha=$(gh api repos/$INTEGRATION_TESTS_REPO/git/ref/heads/master --jq .object.sha)
 
         gh api \
           -X POST \
-          repos/${{ env.INTEGRATION_TESTS_REPO }}/git/refs \
-          -f ref="refs/heads/${{ env.TARGET_BRANCH }}" \
+          repos/$INTEGRATION_TESTS_REPO/git/refs \
+          -f ref="refs/heads/$TARGET_BRANCH" \
           -f sha="$master_sha"
 
-        echo "✅ Branch '${{ env.TARGET_BRANCH }}' created from master"
+        echo "✅ Branch '$TARGET_BRANCH' created from master"
       shell: bash
 
     - name: Dispatch test workflow to same branch
