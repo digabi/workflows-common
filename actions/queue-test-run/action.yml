@@ -28,7 +28,7 @@ runs:
       shell: bash
       run: |
         echo "TARGET_BRANCH=${{ github.head_ref || github.ref_name }}" >> $GITHUB_ENV
-        echo "INTEGRATION_TESTS_REPO=integration-tests" >> $GITHUB_ENV
+        echo "INTEGRATION_TESTS_REPO=digabi/integration-tests" >> $GITHUB_ENV
 
     - name: Mark tests pending
       env:
