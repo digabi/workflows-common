@@ -42,6 +42,8 @@ runs:
 
     - name: Check if branch exists in integration-tests repository
       id: check
+      env:
+        GH_TOKEN: ${{ github.token }}
       run: |
         if gh api repos/${{ env.INTEGRATION_TESTS_REPO }}/branches/${{ env.TARGET_BRANCH }} &>/dev/null; then
           echo "exists=true" >> $GITHUB_OUTPUT
@@ -52,6 +54,8 @@ runs:
 
     - name: Create branch from master if it doesnt exist
       if: steps.check.outputs.exists == 'false'
+      env:
+        GH_TOKEN: ${{ github.token }}
       run: |
         master_sha=$(gh api repos/${{ env.INTEGRATION_TESTS_REPO }}/git/ref/heads/master --jq .object.sha)
 
