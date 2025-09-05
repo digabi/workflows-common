@@ -17,10 +17,6 @@ inputs:
     description: "Token for cross-repo access"
     type: string
     required: false
-  integration_test_access_token:
-    description: "Token for access to test repo"
-    type: string
-    required: false
 
 runs:
   using: "composite"
@@ -44,43 +40,27 @@ runs:
           -F description='Waiting for integration-tests'
       shell: bash
 
-    - name: Check if branch exists in integration-tests repository
-      id: check
+    - name: Determine integration-tests branch
+      id: integration-tests
       env:
         GH_TOKEN: ${{ inputs.cross_repo_access_token }}
       run: |
         if gh api repos/${{ env.INTEGRATION_TESTS_REPO }}/branches/${{ env.TARGET_BRANCH }} &>/dev/null; then
-          echo "exists=true" >> $GITHUB_OUTPUT
+          echo "branch=$TARGET_BRANCH" >> $GITHUB_OUTPUT
         else
-          echo "exists=false" >> $GITHUB_OUTPUT
+          echo "branch=master" >> $GITHUB_OUTPUT
         fi
       shell: bash
 
-    - name: Create branch from master if it doesnt exist
-      if: steps.check.outputs.exists == 'false'
-      env:
-        GH_TOKEN: ${{ inputs.integration_test_access_token }}
-      run: |
-        master_sha=$(gh api repos/$INTEGRATION_TESTS_REPO/branches/master --jq .commit.sha)
-        echo "Got sha for master: $master_sha"
-
-        gh api \
-          -X POST \
-          repos/$INTEGRATION_TESTS_REPO/git/refs \
-          -f ref="refs/heads/$TARGET_BRANCH" \
-          -f sha="$master_sha"
-
-        echo "✅ Branch '$TARGET_BRANCH' created from master"
-      shell: bash
-
-    - name: Dispatch test workflow to same branch
+    - name: Dispatch test workflow
       env:
         GH_TOKEN: ${{ inputs.cross_repo_access_token }}
       run: |
         gh workflow run ${{ inputs.test_workflow_file }} \
-          -R digabi/integration-tests \
-          -r "$TARGET_BRANCH" \
+          -R ${{ env.INTEGRATION_TESTS_REPO }} \
+          -r "${{ steps.integration-tests.outputs.branch }}" \
           -F image_tag_latest="${{ inputs.image_tag_latest }}" \
           -F sha="${{ steps.last-sha.outputs.last_commit_sha }}" \
-          -F repository="${{ github.repository }}"
+          -F repository="${{ github.repository }}" \
+          -F target_branch="$TARGET_BRANCH"
       shell: bash

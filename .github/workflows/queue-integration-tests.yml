@@ -23,17 +23,11 @@ on:
         description: "GitHub App ID for integration tests"
         required: true
         type: string
-      integration_test_content_write_app_id:
-        description: "GitHub App ID for integration test content write"
-        required: true
-        type: string
     secrets:
       CROSS_REPO_ACCESS_APP_PRIVATE_KEY:
         description: "private key for cross-repo access app"
         required: true
-      INTEGRATION_TEST_WRITE_PRIVATE_KEY:
-        description: "private key for writing to test repo"
-        required: true
+
 jobs:
   trigger-tests:
     runs-on: ubuntu-latest
@@ -47,12 +41,6 @@ jobs:
           app-id: ${{ inputs.cross_repo_access_app_id }}
           private-key: ${{ secrets.CROSS_REPO_ACCESS_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
-      - uses: actions/create-github-app-token@v2
-        id: app-token-2
-        with:
-          app-id: ${{ inputs.integration_test_content_write_app_id }}
-          private-key: ${{ secrets.INTEGRATION_TEST_WRITE_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
       - name: Queue abitti tests
         if: ${{ inputs.test_abitti }}
         uses: digabi/workflows-common/actions/queue-test-run@main
@@ -61,7 +49,6 @@ jobs:
           test_workflow_file: abitti-playwright-tests.yml
           test_status_name: integration-tests/abitti
           cross_repo_access_token: ${{ steps.app-token.outputs.token }}
-          integration_test_access_token: ${{ steps.app-token-2.outputs.token }}
       - name: Queue yo tests
         if: ${{ inputs.test_yo }}
         uses: digabi/workflows-common/actions/queue-test-run@main
@@ -70,7 +57,6 @@ jobs:
           test_workflow_file: yo-playwright-tests.yml
           test_status_name: integration-tests/yo
           cross_repo_access_token: ${{ steps.app-token.outputs.token }}
-          integration_test_access_token: ${{ steps.app-token-2.outputs.token }}
       - name: Queue koe ktpjs tests
         if: ${{ inputs.test_koe_ktpjs }}
         uses: digabi/workflows-common/actions/queue-test-run@main
@@ -79,4 +65,3 @@ jobs:
           test_workflow_file: koe-ktpjs-playwright-tests.yml
           test_status_name: integration-tests/koe-ktpjs
           cross_repo_access_token: ${{ steps.app-token.outputs.token }}
-          integration_test_access_token: ${{ steps.app-token-2.outputs.token }}
