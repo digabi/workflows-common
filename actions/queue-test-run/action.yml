@@ -61,6 +61,6 @@ runs:
           -r "${{ steps.integration-tests.outputs.branch }}" \
           -F image_tag_latest="${{ inputs.image_tag_latest }}" \
           -F sha="${{ steps.last-sha.outputs.last_commit_sha }}" \
-          -F repository="${{ github.repository }}"
+          -F repository="${{ github.repository }}" \
           -F target_branch="$TARGET_BRANCH"
       shell: bash
