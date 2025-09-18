@@ -54,6 +54,7 @@ jobs:
       image_tag_latest: ${{ steps.docker-tags.outputs.image_tag_latest }}
     permissions:
       id-token: write
+      packages: write
       contents: read
     steps:
       - uses: actions/checkout@v4
@@ -73,21 +74,13 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - id: docker-tags
         uses: digabi/workflows-common/actions/ecr-image-tags@main
-      - name: Prepare full tags
-        id: prep-tags
-        run: |
-          base="${{ steps.login-ecr.outputs.registry }}/${{ inputs.image-name }}:${{ steps.docker-tags.outputs.image_tag }}"
-          if [ "${{ inputs.tag-latest }}" = "true" ]; then
-            base="$base,${{ steps.login-ecr.outputs.registry }}/${{ inputs.image-name }}:${{ steps.docker-tags.outputs.image_tag_latest }}"
-          fi
-          echo "tags=$base" >> "$GITHUB_OUTPUT"
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           push: true
           file: ${{ inputs.file }}
           context: ${{ inputs.context }}
-          tags: ${{ steps.prep-tags.outputs.tags }}
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image-name }}:${{ steps.docker-tags.outputs.image_tag }}
           provenance: false
           target: ${{ inputs.docker-target }}
           platforms: linux/amd64
@@ -95,3 +88,26 @@ jobs:
           cache-to: type=gha,mode=max
           secrets: |
             npmrc=//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+      - name: Log in to the GitHub Container registry
+        if: ${{ inputs.tag-latest}}
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push latest tag to GitHub Container Registry
+        if: ${{ inputs.tag-latest }}
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          file: ${{ inputs.file }}
+          context: ${{ inputs.context }}
+          tags: ghcr.io/digabi/${{ inputs.image-name }}:${{ steps.docker-tags.outputs.image_tag_latest }}
+          provenance: false
+          target: ${{ inputs.docker-target }}
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          secrets: |
+            npmrc=//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+
