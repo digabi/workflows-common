@@ -110,4 +110,11 @@ jobs:
           cache-to: type=gha,mode=max
           secrets: |
             npmrc=//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
-
+      - name: Delete orphaned images from Github Container Registry
+        uses: actions/delete-package-versions@v5
+        with: 
+          package-name: ${{ inputs.image-name }}
+          package-type: 'container'
+          min-versions-to-keep: 0
+          delete-only-untagged-versions: 'true'
+                
