@@ -1,4 +1,4 @@
-name: "Create ECR image tag names"
+name: "Create container image tag names"
 
 outputs:
   image_tag_latest:
@@ -11,7 +11,7 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Create ECR image tag name
+    - name: Create container image tag name
       id: tags
       # github.sha is not the latest commit sha in pull_request event so we need to get it from the event payload
       run: |
