@@ -20,6 +20,12 @@ runs:
         package_version_id=$(
           gh api /orgs/digabi/packages/container/${{ env.REPO_NAME }}/versions --jq ".[] | select(.metadata.container.tags | index(\"${{ inputs.image-tag }}\")) | .id"
         )
+
+        if [ -z "$package_version_id" ]; then
+          echo "No package version found with tag ${{ inputs.image-tag }}"
+          exit 0
+        fi
+        
         gh api \
           -X DELETE \
           -H "Accept: application/vnd.github+json" \
