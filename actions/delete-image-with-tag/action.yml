@@ -6,6 +6,9 @@ inputs:
         required: true
   image-name:
         description: 'Name of the image (package) to delete from'
+  github-token:
+        description: 'GitHub token with read and delete package permissions'
+        required: true
 runs:
   using: 'composite'
   steps:
@@ -14,7 +17,7 @@ runs:
       uses: digabi/workflows-common/actions/parse-repo-name@use-gh-for-test-images
     - name: Delete image with tag ${{ inputs.image-tag }}
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ inputs.github-token }}
         REPO_NAME: ${{ inputs.image-name || steps.output_repo_name.outputs.repo_name }}
       run: |
         package_version_id=$(
@@ -25,7 +28,7 @@ runs:
           echo "No package version found with tag ${{ inputs.image-tag }}"
           exit 0
         fi
-        
+
         gh api \
           -X DELETE \
           -H "Accept: application/vnd.github+json" \
