@@ -7,16 +7,12 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Set repository name
-      run: |
-          REPO_FULL="${{ github.repository }}"
-          REPO_OWNER="${{ github.repository_owner }}"
-          REPO_NAME=${REPO_FULL#$REPO_OWNER/}
-          echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
-      shell: bash
+    - name: Get repository name
+      id: output_repo_name
+      uses: digabi/workflows-common/actions/parse-repo-name@use-gh-for-test-images
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-          role-to-assume: arn:aws:iam::${{ inputs.aws-account-id }}:role/${{ env.REPO_NAME }}-github-access
+          role-to-assume: arn:aws:iam::${{ inputs.aws-account-id }}:role/${{ steps.output_repo_name.outputs.repo_name }}-github-access
           aws-region: eu-north-1
           mask-aws-account-id: true
