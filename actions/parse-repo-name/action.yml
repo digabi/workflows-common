@@ -14,5 +14,5 @@ runs:
           REPO_FULL="${{ github.repository }}"
           REPO_OWNER="${{ github.repository_owner }}"
           REPO_NAME=${REPO_FULL#$REPO_OWNER/}
-          echo "repo_name=$REPO_NAME" >> $GITHUN_OUTPUT
+          echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
       shell: bash
