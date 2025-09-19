@@ -64,7 +64,7 @@ jobs:
           node-version-file: ".nvmrc"
           cache: "npm"
       - name: Assume AWS role
-        uses: digabi/workflows-common/actions/assume-digabi-aws-role@main
+        uses: digabi/workflows-common/actions/assume-digabi-aws-role@use-gh-for-test-images
         with:
           aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
       - name: Login to Amazon ECR
