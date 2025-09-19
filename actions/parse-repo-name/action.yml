@@ -1,0 +1,18 @@
+name: 'Parse repository name from org/repository-name format'
+
+outputs:
+  repo_name:
+    description: "Repository name"
+    value: ${{ steps.output_repo_name.outputs.repo_name }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Output repository name
+      id: output_repo_name
+      run: |
+          REPO_FULL="${{ github.repository }}"
+          REPO_OWNER="${{ github.repository_owner }}"
+          REPO_NAME=${REPO_FULL#$REPO_OWNER/}
+          echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
+      shell: bash
