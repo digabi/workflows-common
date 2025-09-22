@@ -9,7 +9,7 @@ runs:
   steps:
     - name: Get repository name
       id: output_repo_name
-      uses: digabi/workflows-common/actions/parse-repo-name@use-gh-for-test-images
+      uses: digabi/workflows-common/actions/parse-repo-name@main
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:

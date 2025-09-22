@@ -14,7 +14,7 @@ runs:
   steps:
     - name: Get repository name
       id: output_repo_name
-      uses: digabi/workflows-common/actions/parse-repo-name@use-gh-for-test-images
+      uses: digabi/workflows-common/actions/parse-repo-name@main
     - name: Delete image with tag ${{ inputs.image-tag }}
       env:
         GH_TOKEN: ${{ inputs.github-token }}
