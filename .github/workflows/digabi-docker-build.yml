@@ -111,6 +111,7 @@ jobs:
           secrets: |
             npmrc=//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
       - name: Delete orphaned images from Github Container Registry
+        if: ${{ inputs.tag-latest }}
         uses: actions/delete-package-versions@v5
         with: 
           package-name: ${{ inputs.image-name }}
