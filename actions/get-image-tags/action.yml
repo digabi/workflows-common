@@ -18,8 +18,54 @@ runs:
         calculatedSha=$(git rev-parse --short  ${{ github.event_name == 'pull_request' && format('{0}',github.event.pull_request.head.sha) || format('{0}',github.sha)  }})
         echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
         branchName="${{ github.head_ref || github.ref_name }}"
-        branchNoForwardSlash="${branchName//\//-}" 
+        branchNoForwardSlash="${branchName//\//-}"
+        
+        # Docker tags can be max 128 characters
+        # First, create the original tags
         latestTag="${branchNoForwardSlash}_latest"
+        imageTag="${branchNoForwardSlash}_build-${{ github.run_number }}.${{github.run_attempt}}_${calculatedSha}"
+        
+        # Check if latest tag exceeds 128 characters
+        if [ ${#latestTag} -gt 128 ]; then
+          echo "Latest tag exceeds 128 characters, truncating and adding hash..."
+          # Calculate hash of full branch name for uniqueness (8 chars)
+          branchHash=$(echo -n "$branchNoForwardSlash" | sha256sum | cut -c1-8)
+          
+          # For latest tag: branch + _latest (7) + _ (1) + branch_hash (8) = 16
+          maxBranchLengthForLatest=$((128 - 16))
+          branchTruncated="${branchNoForwardSlash:0:$maxBranchLengthForLatest}"
+          latestTag="${branchTruncated}_${branchHash}_latest"
+        fi
+        
+        # Check if image tag exceeds 128 characters
+        if [ ${#imageTag} -gt 128 ]; then
+          echo "Image tag exceeds 128 characters, truncating and adding hash..."
+          # Calculate hash of full branch name for uniqueness (8 chars) if not already calculated
+          if [ -z "$branchHash" ]; then
+            branchHash=$(echo -n "$branchNoForwardSlash" | sha256sum | cut -c1-8)
+          fi
+          
+          # Calculate exact space needed for suffix components
+          runNumber="${{ github.run_number }}"
+          runAttempt="${{ github.run_attempt }}"
+          # _build- (7) + run_number + . (1) + run_attempt + _ (1) + commit_sha + _ (1) + branch_hash (8)
+          suffixLength=$((7 + ${#runNumber} + 1 + ${#runAttempt} + 1 + ${#calculatedSha} + 1 + 8))
+          
+          maxBranchLengthForImage=$((128 - suffixLength))
+          branchTruncated="${branchNoForwardSlash:0:$maxBranchLengthForImage}"
+          imageTag="${branchTruncated}_build-${runNumber}.${runAttempt}_${calculatedSha}_${branchHash}"
+        fi
+        
+        # Ensure we're within 128 character limit
+        if [ ${#latestTag} -gt 128 ]; then
+          echo "Error: latest tag exceeds 128 characters: ${latestTag}"
+          exit 1
+        fi
+        if [ ${#imageTag} -gt 128 ]; then
+          echo "Error: image tag exceeds 128 characters: ${imageTag}"
+          exit 1
+        fi
+        
         echo "image_tag_latest=${latestTag}" >> $GITHUB_OUTPUT
-        echo "image_tag=${branchNoForwardSlash}_build-${{ github.run_number }}.${{github.run_attempt}}_${calculatedSha}" >> $GITHUB_OUTPUT
+        echo "image_tag=${imageTag}" >> $GITHUB_OUTPUT
       shell: bash
