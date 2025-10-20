@@ -57,7 +57,15 @@ jobs:
       packages: write
       contents: read
     steps:
+      - name: Get latest commit SHA
+        id: sha
+        uses: digabi/workflows-common/actions/last-commit-sha@main
+
       - uses: actions/checkout@v4
+        with:
+          # If not set manually, pull request build will run on the merge commit and docker image will actually contain current master and changes.
+          ref: ${{ steps.sha.outputs.last_commit_sha }}
+
       - uses: actions/setup-node@v4
         if: ${{ !inputs.no-npm }}
         with:
@@ -114,9 +122,8 @@ jobs:
       - name: Delete orphaned images from Github Container Registry
         if: ${{ inputs.tag-latest }}
         uses: actions/delete-package-versions@v5
-        with: 
+        with:
           package-name: ${{ inputs.image-name }}
-          package-type: 'container'
+          package-type: "container"
           min-versions-to-keep: 0
-          delete-only-untagged-versions: 'true'
-                
+          delete-only-untagged-versions: "true"
