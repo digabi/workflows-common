@@ -1,0 +1,80 @@
+name: Setup CI certs
+description: Install mkcert, trust test CA, and materialize cert files for CI
+
+inputs:
+  host-name:
+    description: Hostname written to domain.txt and added to /etc/hosts
+    required: true
+  certs-directory:
+    description: Relative path where cert files are written
+    required: false
+    default: certs
+  test-domain-ca-certificate:
+    description: PEM-encoded CA certificate content
+    required: true
+  test-domain-ca-certificate-key:
+    description: PEM-encoded CA private key content
+    required: true
+  test-domain-certificate:
+    description: PEM-encoded leaf certificate content
+    required: true
+  test-domain-certificate-key:
+    description: PEM-encoded leaf certificate private key content
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install prerequisite apt packages
+      shell: bash
+      run: |
+        set -euo pipefail
+        # Prevent slow, unnecessary man-db refreshes in CI.
+        sudo rm -f /var/lib/man-db/auto-update
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends libnss3-tools ca-certificates
+
+    - name: Install mkcert
+      shell: bash
+      run: |
+        set -euo pipefail
+        curl -JLO https://dl.filippo.io/mkcert/latest?for=linux/amd64
+        chmod +x mkcert-v*-linux-amd64
+        sudo cp mkcert-v*-linux-amd64 /usr/local/bin/mkcert
+
+    - name: Install mkcert CA
+      shell: bash
+      env:
+        MKCERT_DIR: ${{ runner.temp }}/mkcert
+        NSS_DIR: ${{ runner.temp }}/nssdb
+      run: |
+        set -euo pipefail
+        mkdir -p "$MKCERT_DIR"
+        echo '${{ inputs.test-domain-ca-certificate }}' > "$MKCERT_DIR/rootCA.pem"
+        echo '${{ inputs.test-domain-ca-certificate-key }}' > "$MKCERT_DIR/rootCA-key.pem"
+        mkdir -p "$NSS_DIR"
+        certutil -d "$NSS_DIR" -N --empty-password
+        CAROOT="$MKCERT_DIR" TRUST_STORES="system,nss" mkcert -install
+        sudo update-ca-certificates --fresh
+
+    - name: Setup test domain and certificates
+      shell: bash
+      run: |
+        set -euo pipefail
+        certs_dir="${{ inputs.certs-directory }}"
+        host_name="${{ inputs.host-name }}"
+
+        mkdir -p "$certs_dir"
+        echo '${{ inputs.test-domain-certificate }}' > "$certs_dir/cert.pem"
+        echo '${{ inputs.test-domain-certificate-key }}' > "$certs_dir/key.pem"
+        echo '${{ inputs.test-domain-ca-certificate }}' > "$certs_dir/chain.pem"
+        cat "$certs_dir/cert.pem" "$certs_dir/chain.pem" > "$certs_dir/fullchain.pem"
+        echo "$host_name" > "$certs_dir/domain.txt"
+
+        if ! grep -Eq "[[:space:]]${host_name}(\\s|\$)" /etc/hosts; then
+          host_ip="$(hostname -I | awk '{print $1}')"
+          if [ -z "$host_ip" ]; then
+            host_ip="127.0.0.1"
+          fi
+          echo "$host_ip $host_name" | sudo tee -a /etc/hosts >/dev/null
+        fi
