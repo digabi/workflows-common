@@ -45,8 +45,8 @@ runs:
     - name: Install mkcert CA
       shell: bash
       env:
-        MKCERT_DIR: ${{ runner.temp }}/mkcert
-        NSS_DIR: ${{ runner.temp }}/nssdb
+        MKCERT_DIR: $HOME/.local/share/mkcert
+        NSS_DIR: $HOME/.pki/nssdb
       run: |
         set -euo pipefail
         mkdir -p "$MKCERT_DIR"
