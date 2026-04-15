@@ -71,10 +71,4 @@ runs:
         cat "$certs_dir/cert.pem" "$certs_dir/chain.pem" > "$certs_dir/fullchain.pem"
         echo "$host_name" > "$certs_dir/domain.txt"
 
-        if ! grep -Eq "[[:space:]]${host_name}(\\s|\$)" /etc/hosts; then
-          host_ip="$(hostname -I | awk '{print $1}')"
-          if [ -z "$host_ip" ]; then
-            host_ip="127.0.0.1"
-          fi
-          echo "$host_ip $host_name" | sudo tee -a /etc/hosts >/dev/null
-        fi
+        sudo echo "$(hostname -I) $host_name" | sudo tee -a /etc/hosts
