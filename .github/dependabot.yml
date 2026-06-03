@@ -1,0 +1,19 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directories:
+      - /
+      - /actions/assume-digabi-aws-role
+      - /actions/delete-image-with-tag
+      - /actions/get-image-tags
+      - /actions/last-commit-sha
+      - /actions/parse-repo-name
+      - /actions/queue-test-run
+      - /actions/setup-ci-certs
+      - /actions/setup-node
+    schedule:
+      interval: daily
+    groups:
+      actions:
+        patterns:
+          - "*"
