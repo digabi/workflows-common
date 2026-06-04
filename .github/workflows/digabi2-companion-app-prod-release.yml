@@ -21,7 +21,7 @@ jobs:
       id-token: write
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Assume AWS role
@@ -32,12 +32,12 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
       - name: Install regctl
-        uses: regclient/actions/regctl-installer@ce5fd131e371ffcdd7508b478cb223b3511a9183
+        uses: regclient/actions/regctl-installer@c70ad64367908075211b10dcd2ab9fad4bfa1816
         with:
           release: 'v0.7.2'
       - name: Publish prod image
         run: regctl image copy ${{ steps.login-ecr.outputs.registry }}/${{ inputs.app-name }}:${{ inputs.tag }} ${{ steps.login-ecr.outputs.registry }}/${{ inputs.app-name }}-prod:${{ inputs.tag }}
       - name: Create Github Release
-        uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda
         with:
           tag_name: ${{ inputs.tag }}

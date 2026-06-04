@@ -11,7 +11,7 @@ runs:
       id: output_repo_name
       uses: digabi/workflows-common/actions/parse-repo-name@main
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v6
       with:
           role-to-assume: arn:aws:iam::${{ inputs.aws-account-id }}:role/${{ steps.output_repo_name.outputs.repo_name }}-github-access
           aws-region: eu-north-1
