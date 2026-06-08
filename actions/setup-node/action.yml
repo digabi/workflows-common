@@ -12,7 +12,7 @@ runs:
     - name: Authenticate with private NPM package
       run: echo "//registry.npmjs.org/:_authToken=${{ inputs.npm-token }}" > $PWD/.npmrc
       shell: bash
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v6
       with:
         node-version-file: .nvmrc
         cache: npm
