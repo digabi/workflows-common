@@ -99,7 +99,7 @@ jobs:
             npmrc=//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
       - name: Log in to the GitHub Container registry
         if: ${{ inputs.tag-latest}}
-        uses: docker/login-action@0267638d8ae53966df71bb06d552129dd542dfa7
+        uses: docker/login-action@946f94de75ea52995b6aa1e54fd3e0aeed6cc573
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
