@@ -61,7 +61,7 @@ jobs:
         id: sha
         uses: digabi/workflows-common/actions/last-commit-sha@main
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # If not set manually, pull request build will run on the merge commit and docker image will actually contain current master and changes.
           ref: ${{ steps.sha.outputs.last_commit_sha }}
@@ -99,7 +99,7 @@ jobs:
             npmrc=//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
       - name: Log in to the GitHub Container registry
         if: ${{ inputs.tag-latest}}
-        uses: docker/login-action@946f94de75ea52995b6aa1e54fd3e0aeed6cc573
+        uses: docker/login-action@3864d6aed8ff134b2ed894ce00c87695c709c870
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
