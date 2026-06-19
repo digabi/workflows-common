@@ -21,7 +21,7 @@ jobs:
       id-token: write
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Assume AWS role
@@ -38,6 +38,6 @@ jobs:
       - name: Publish prod image
         run: regctl image copy ${{ steps.login-ecr.outputs.registry }}/${{ inputs.app-name }}:${{ inputs.tag }} ${{ steps.login-ecr.outputs.registry }}/${{ inputs.app-name }}-prod:${{ inputs.tag }}
       - name: Create Github Release
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b
         with:
           tag_name: ${{ inputs.tag }}
