@@ -32,7 +32,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
       - name: Install regctl
-        uses: regclient/actions/regctl-installer@14f9d37db17b5dc41fefd1ffdd1af4b9e2490560
+        uses: regclient/actions/regctl-installer@4b4db1dcc7dad75ad67a788a380f75a20cc8a040
         with:
           release: 'v0.7.2'
       - name: Publish prod image
