@@ -96,7 +96,6 @@ jobs:
           secrets: |
             npmrc=//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
       - name: Assume AWS role
-        if: ${{ steps.build-policy.outputs.skip_aws_push != 'true' }}
         uses: digabi/workflows-common/actions/assume-digabi-aws-role@main
         with:
           aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
