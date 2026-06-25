@@ -101,7 +101,6 @@ jobs:
         with:
           aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
       - name: Login to Amazon ECR
-        if: ${{ steps.build-policy.outputs.skip_aws_push != 'true' }}
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
       - name: Build and push to Amazon ECR
