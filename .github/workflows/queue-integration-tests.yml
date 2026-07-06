@@ -38,7 +38,7 @@ jobs:
       - uses: actions/create-github-app-token@v3
         id: app-token
         with:
-          app-id: ${{ inputs.cross_repo_access_app_id }}
+          client-id: ${{ inputs.cross_repo_access_app_id }}
           private-key: ${{ secrets.CROSS_REPO_ACCESS_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
       - name: Queue abitti tests
