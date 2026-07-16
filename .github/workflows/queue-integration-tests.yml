@@ -15,6 +15,10 @@ on:
         description: "True if Abitti tests should be run"
         required: false
         type: boolean
+      test_asiointi:
+        description: "True if Asiointi tests should be run"
+        required: false
+        type: boolean
       test_koe_ktpjs:
         description: "True if Koe ktpjs tests should be run"
         required: false
@@ -56,4 +60,12 @@ jobs:
           image_tag_latest: ${{ inputs.image_tag_latest }}
           test_workflow_file: yo-playwright-tests.yml
           test_status_name: integration-tests/yo
+          cross_repo_access_token: ${{ steps.app-token.outputs.token }}
+      - name: Queue asiointi tests
+        if: ${{ inputs.test_asiointi }}
+        uses: digabi/workflows-common/actions/queue-test-run@main
+        with:
+          image_tag_latest: ${{ inputs.image_tag_latest }}
+          test_workflow_file: asiointi-playwright-tests.yml
+          test_status_name: integration-tests/asiointi
           cross_repo_access_token: ${{ steps.app-token.outputs.token }}
