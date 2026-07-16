@@ -67,7 +67,7 @@ jobs:
           # If not set manually, pull request build will run on the merge commit and docker image will actually contain current master and changes.
           ref: ${{ steps.sha.outputs.last_commit_sha }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         if: ${{ !inputs.no-npm }}
         with:
           node-version-file: ".nvmrc"
