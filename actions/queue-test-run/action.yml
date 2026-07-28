@@ -29,6 +29,7 @@ runs:
       run: |
         echo "TARGET_BRANCH=${{ github.head_ref || github.ref_name }}" >> $GITHUB_ENV
         echo "INTEGRATION_TESTS_REPO=digabi/integration-tests" >> $GITHUB_ENV
+        echo "BASE_BRANCH=${{ github.base_ref }}" >> $GITHUB_ENV
 
     - name: Mark tests pending
       env:
@@ -47,6 +48,8 @@ runs:
       run: |
         if gh api repos/${{ env.INTEGRATION_TESTS_REPO }}/branches/${{ env.TARGET_BRANCH }} &>/dev/null; then
           echo "branch=$TARGET_BRANCH" >> $GITHUB_OUTPUT
+        elif [ -n "$BASE_BRANCH" ] && gh api repos/${{ env.INTEGRATION_TESTS_REPO }}/branches/${BASE_BRANCH} &>/dev/null; then
+          echo "branch=$BASE_BRANCH" >> $GITHUB_OUTPUT
         else
           echo "branch=master" >> $GITHUB_OUTPUT
         fi
@@ -62,5 +65,6 @@ runs:
           -F image_tag_latest="${{ inputs.image_tag_latest }}" \
           -F sha="${{ steps.last-sha.outputs.last_commit_sha }}" \
           -F repository="${{ github.repository }}" \
-          -F target_branch="$TARGET_BRANCH"
+          -F target_branch="$TARGET_BRANCH" \
+          -F base_branch="$BASE_BRANCH"
       shell: bash
