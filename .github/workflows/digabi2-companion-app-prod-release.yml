@@ -32,12 +32,12 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
       - name: Install regctl
-        uses: regclient/actions/regctl-installer@5c882eb04fcca27ebb4f5904e0da01f0780063ea
+        uses: regclient/actions/regctl-installer@dd58ad94f76adb73d8ac1bf75ed25f01545d5b32
         with:
           release: 'v0.7.2'
       - name: Publish prod image
         run: regctl image copy ${{ steps.login-ecr.outputs.registry }}/${{ inputs.app-name }}:${{ inputs.tag }} ${{ steps.login-ecr.outputs.registry }}/${{ inputs.app-name }}-prod:${{ inputs.tag }}
       - name: Create Github Release
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64
         with:
           tag_name: ${{ inputs.tag }}
