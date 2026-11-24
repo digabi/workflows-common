@@ -122,6 +122,24 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ inputs.cache-scope || inputs.image-name }}
           secrets: |
             npmrc=//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+      # On the summary page of the run, so that the tag for a deploy does not have to be dug out of the log
+      - name: Show the build tag
+        if: ${{ steps.build-policy.outputs.skip_aws_push != 'true' }}
+        env:
+          IMAGE_NAME: ${{ inputs.image-name }}
+          IMAGE_TAG: ${{ steps.docker-tags.outputs.image_tag }}
+        run: |
+          echo "Build tag of $IMAGE_NAME: $IMAGE_TAG"
+          {
+            echo "### Build tag of $IMAGE_NAME"
+            echo
+            echo '```'
+            echo "$IMAGE_TAG"
+            echo '```'
+            echo
+            echo "To deploy it, run the [Deploy workflow](https://github.com/digabi/cdk-infra/actions/workflows/deploy.yml) of cdk-infra with this tag as the build."
+          } >> "$GITHUB_STEP_SUMMARY"
+        shell: bash
       - name: Log in to the GitHub Container registry
         if: ${{ inputs.tag-latest }}
         uses: docker/login-action@371161bbe7024a29a25c5e19bfcbc0804fe9ad2c
